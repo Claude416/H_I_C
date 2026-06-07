@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="rn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>HOLY IMPACT CHURCH - Gestion Totale</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a4a5f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="HolyImpact">
+    
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { min-height: 100vh; background: linear-gradient(135deg, #0f2b3a 0%, #1a4a5f 100%); }
+
+        /* Login */
+        .login-container { min-height: 100vh; display: flex; justify-content: center; align-items: center; background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" opacity="0.06"><path fill="white" d="M500,100 L650,300 L550,300 L550,500 L450,500 L450,300 L350,300 L500,100Z M500,700 L350,500 L650,500 L500,700Z"/><circle cx="500" cy="850" r="30"/><rect x="470" y="800" width="60" height="80"/></svg>') repeat; background-size: 60px; }
+        .login-card { background: rgba(255,255,255,0.98); backdrop-filter: blur(10px); border-radius: 60px 60px 60px 40px; padding: 48px 40px; width: 90%; max-width: 480px; box-shadow: 0 30px 60px rgba(0,0,0,0.3); text-align: center; }
+        .church-logo { font-size: 60px; }
+        .login-card h1 { font-size: 1.8rem; color: #0a3b48; }
+        .verset { color: #ffb347; font-style: italic; font-size: 0.85rem; margin: 15px 0 25px; border-top: 1px solid #e2e8f0; padding-top: 15px; }
+        .login-card input { width: 100%; padding: 14px 20px; border-radius: 50px; border: 2px solid #e2e8f0; margin-bottom: 15px; background: white; }
+        .login-btn { background: linear-gradient(135deg, #1a5e6e, #0f4452); color: white; border: none; padding: 14px 35px; border-radius: 50px; font-size: 1.1rem; font-weight: bold; cursor: pointer; width: 100%; }
+        .error-msg { color: #e53e3e; margin-top: 10px; }
+        .footer-verse { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #888; font-size: 0.75rem; }
+
+        /* App Layout */
+        .app { display: flex; min-height: 100vh; }
+        .sidebar { width: 280px; background: linear-gradient(180deg, #0f2b3a 0%, #1a4a5f 100%); color: white; position: fixed; height: 100vh; overflow-y: auto; transition: transform 0.3s; z-index: 1000; }
+        .menu-toggle { display: none; position: fixed; top: 15px; left: 15px; background: #1a4a5f; color: white; border: none; border-radius: 50%; width: 48px; height: 48px; font-size: 24px; cursor: pointer; z-index: 1100; }
+        .sidebar-header { padding: 28px 20px; text-align: center; border-bottom: 1px solid #2e6f86; }
+        .menu-item { padding: 14px 20px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: 0.2s; border-left: 4px solid transparent; }
+        .menu-item:hover, .menu-item.active { background: #2a6b80; border-left-color: #ffb347; }
+        .menu-icon { font-size: 1.3rem; width: 32px; }
+        .menu-item.logout { margin-top: 30px; border-top: 1px solid #2e6f86; border-left-color: #e53e3e; }
+        .menu-item.logout:hover { background: #e53e3e; }
+        .main-content { flex: 1; margin-left: 280px; padding: 25px 30px; background: #f0f2f5; min-height: 100vh; transition: margin-left 0.3s; }
+        .page-section { display: none; animation: fadeIn 0.3s; }
+        .active-section { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background: white; border-radius: 28px; padding: 28px; margin-bottom: 28px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
+        .card h2 { color: #0a3b48; margin-bottom: 24px; border-left: 5px solid #ffb347; padding-left: 18px; }
+        .form-group { margin-bottom: 20px; }
+        label { font-weight: 600; color: #1a5e6e; display: block; margin-bottom: 8px; }
+        input, select, textarea { width: 100%; padding: 12px 18px; border: 1.5px solid #e2e8f0; border-radius: 50px; font-size: 0.95rem; }
+        textarea { border-radius: 24px; resize: vertical; }
+        button { background: #1a5e6e; color: white; border: none; padding: 12px 28px; border-radius: 50px; font-weight: 600; cursor: pointer; margin-top: 8px; margin-right: 10px; transition: 0.2s; }
+        button:hover { background: #0f4452; }
+        .delete-btn { background: #e53e3e; padding: 5px 14px; border-radius: 40px; font-size: 0.7rem; cursor: pointer; }
+        .edit-btn { background: #ffb347; color: #1e2a2e; padding: 5px 14px; border-radius: 40px; font-size: 0.7rem; cursor: pointer; margin-right: 5px; }
+        .data-list { margin-top: 20px; background: #f8fafc; border-radius: 24px; padding: 20px; max-height: 400px; overflow-y: auto; }
+        .data-list ul { list-style: none; }
+        .data-list li { padding: 12px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; gap: 10px; }
+        
+        /* Dashboard Stats */
+        .dashboard-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 22px; margin-bottom: 35px; }
+        .stat-card { background: white; border-radius: 28px; padding: 22px; text-align: center; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-number { font-size: 2rem; font-weight: 800; color: #ff8c42; }
+        .stat-label { color: #4a5568; margin-top: 8px; font-size: 0.85rem; }
+        
+        /* Member Cards */
+        .members-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; margin-top: 20px; }
+        .member-card { background: linear-gradient(135deg, #fff, #f8fafc); border-radius: 20px; padding: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); border-left: 5px solid #ffb347; transition: transform 0.2s; }
+        .member-card:hover { transform: translateY(-5px); }
+        .member-card h3 { color: #1a5e6e; margin-bottom: 10px; }
+        .member-card .role { color: #ffb347; font-weight: bold; margin-bottom: 15px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 10px; }
+        
+        /* Bible Section */
+        .bible-container { background: #f8fafc; border-radius: 28px; padding: 25px; margin-top: 20px; }
+        .verse-card { background: linear-gradient(135deg, #fff, #fef9e6); border-radius: 24px; padding: 30px; text-align: center; border-left: 5px solid #ffb347; }
+        .verse-reference { font-size: 1.4rem; font-weight: bold; color: #1a5e6e; margin-bottom: 20px; }
+        .verse-text { font-size: 1.2rem; line-height: 1.8; font-family: 'Georgia', serif; color: #2d3748; margin-bottom: 25px; }
+        .bible-books-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; max-height: 400px; overflow-y: auto; margin-top: 20px; }
+        .book-btn { background: #e2e8f0; color: #1a5e6e; padding: 8px 12px; font-size: 0.8rem; margin: 0; }
+        .book-btn:hover { background: #ffb347; color: white; }
+        .bible-chapters { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; max-height: 300px; overflow-y: auto; }
+        .chapter-btn { background: #1a5e6e; color: white; padding: 8px 15px; border-radius: 30px; font-size: 0.8rem; cursor: pointer; }
+        .chapter-btn:hover { background: #ffb347; }
+        
+        /* Forum */
+        .forum-post { background: white; border-radius: 20px; padding: 20px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .forum-post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; }
+        .forum-author { font-weight: bold; color: #1a5e6e; }
+        .forum-date { color: #888; font-size: 0.8rem; }
+        .forum-content { margin-bottom: 15px; line-height: 1.5; }
+        .forum-reactions { display: flex; gap: 15px; margin-bottom: 15px; }
+        .reaction-btn { background: #f0f2f5; border: none; padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; }
+        .reaction-btn.liked { background: #ffb347; color: white; }
+        .reaction-btn.disliked { background: #e53e3e; color: white; }
+        .forum-comments { margin-top: 15px; padding-left: 20px; border-left: 2px solid #ffb347; }
+        .forum-comment { background: #f8fafc; padding: 10px; border-radius: 15px; margin-bottom: 10px; }
+        .comment-form { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .comment-form input { flex: 1; }
+        
+        /* Media Gallery */
+        .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
+        .media-item { background: #f8fafc; border-radius: 15px; overflow: hidden; cursor: pointer; position: relative; }
+        .media-item img, .media-item video { width: 100%; height: 180px; object-fit: cover; }
+        .media-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; }
+        .media-actions button { background: rgba(0,0,0,0.6); padding: 5px 10px; margin: 0; font-size: 0.7rem; }
+        
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; border-radius: 28px; padding: 30px; max-width: 500px; width: 90%; }
+        .modal-media { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; display: none; justify-content: center; align-items: center; }
+        .modal-media-content { max-width: 90%; max-height: 90%; }
+        .close-media { position: absolute; top: 20px; right: 40px; color: white; font-size: 40px; cursor: pointer; }
+        
+        .role-badge { background: #ffb347; color: #1e2a2e; padding: 5px 14px; border-radius: 40px; font-size: 0.75rem; margin-left: 10px; }
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .settings-group { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #e2e8f0; }
+        .offline-badge { position: fixed; bottom: 20px; right: 20px; background: #2d6a4f; color: white; padding: 8px 18px; border-radius: 40px; font-size: 0.75rem; z-index: 1100; }
+        
+        @media (max-width: 768px) {
+            .menu-toggle { display: block; }
+            .sidebar { transform: translateX(-100%); width: 260px; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 70px 16px 20px; }
+            .dashboard-stats { grid-template-columns: 1fr 1fr; }
+            .bible-books-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+        }
+        @media print { .sidebar, .menu-toggle, button, .share-buttons { display: none !important; } }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="loginPageFull" class="login-container">
+        <div class="login-card">
+            <div class="church-logo">⛪</div>
+            <h1>HOLY IMPACT CHURCH</h1>
+            <div class="verset">"Abefeso 2:21 - Mu We isinzu ryose rihujwe neza rikura kikaba urusengero rwera mu Mwami"</div>
+            <input type="text" id="loginUsername" placeholder="Izina ryakoresha">
+            <input type="password" id="loginPassword" placeholder="Ijambo ryibanga">
+            <button class="login-btn" id="loginBtnMain">🚪 Kwinjira mu Ishengero</button>
+            <div id="loginError" class="error-msg"></div>
+            <div class="footer-verse">✨ "Nimwambare umuntu mushya" - Abakolosayi 3:10</div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <h3>✏️ Hindura Umukoresha</h3>
+            <input type="text" id="editUsername" placeholder="Username">
+            <input type="password" id="editPassword" placeholder="Password">
+            <select id="editRole">
+                <option value="Pasteur">Pasteur (Admin)</option>
+                <option value="Umwanditsi">Umwanditsi</option>
+                <option value="Uwurongoye abaririmvyi">Uwurongoye abaririmvyi</option>
+                <option value="Abajejwe protocole">Abajejwe protocole</option>
+                <option value="Umubitsi">Umubitsi</option>
+                <option value="Umunyeahengero">Umunyeahengero</option>
+            </select>
+            <div class="modal-buttons" style="display:flex; gap:10px; margin-top:20px;">
+                <button id="saveEditBtn">💾 Kubika</button>
+                <button id="cancelEditBtn" style="background:#e53e3e;">❌ Gahagarika</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Media Modal -->
+    <div id="mediaModal" class="modal-media">
+        <span class="close-media" onclick="closeMediaModal()">&times;</span>
+        <div class="modal-media-content">
+            <img id="modalImage" src="" style="display:none;">
+            <video id="modalVideo" controls style="display:none;"></video>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div class="app" id="mainApp" style="display:none;">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>⛪ HOLY IMPACT</h2>
+                <small id="userRoleDisplay"></small>
+            </div>
+            <div id="menuContainer"></div>
+            <div class="menu-item logout" id="logoutBtn">
+                <div class="menu-icon">🚪</div>
+                <span>Gusohoka / Déconnexion</span>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Dashboard -->
+            <div id="dashboardPage" class="page-section active-section">
+                <div class="current-role-info" id="roleDisplayBadge"></div>
+                <h1 style="margin-bottom: 20px;">🏠 Dashboard Ishengero</h1>
+                <div class="dashboard-stats" id="dashboardStats"></div>
+                <div class="grid-2">
+                    <div class="card"><h2>📌 Inama ikurikira</h2><div id="upcomingMeetings"></div></div>
+                    <div class="card"><h2>💰 Solde ya none</h2><div id="currentSolde" style="font-size:1.8rem; font-weight:bold; color:#ff8c42;">0 FRW</div></div>
+                </div>
+                <div class="card"><h2>📦 Agaciro k'ibikoresho</h2><div id="inventaireTotalValue" style="font-size:1.5rem; font-weight:bold; color:#ff8c42;"></div></div>
+            </div>
+
+            <!-- Bible Section - Complete avec offline support -->
+            <div id="biblePage" class="page-section">
+                <div class="card">
+                    <h2>📖 Bibiliya Yera</h2>
+                    <div class="bible-container">
+                        <!-- Status offline/online -->
+                        <div id="bibleStatus" style="margin-bottom: 15px; padding: 8px 15px; border-radius: 40px; background: #e2e8f0; display: inline-block; font-size: 0.8rem;">
+                            🌐 Igikoranye na interineti
+                        </div>
+                        
+                        <!-- Quick verse of the day -->
+                        <div class="verse-card" id="verseOfTheDay">
+                            <div class="verse-reference">Yohani 3:16</div>
+                            <div class="verse-text">"Kuko Imana yakunze abari mu isi cane, Iragaba Umwana wayo w'ikinege, kugira ngo umuntu wese ari wundi amwizera ntapfakwe, ariko abe ubugingo buhoraho."</div>
+                        </div>
+                        
+                        <!-- Search verse -->
+                        <div class="form-group" style="margin-top: 25px;">
+                            <label>🔍 Shakisha icapfa c'Bibiliya</label>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <input type="text" id="verseReference" placeholder="Urugero: Yohani 3:16, Zaburi 23:1, Yesaya 40:31" style="flex: 2;">
+                                <select id="translationSelect" style="flex: 1;">
+                                    <option value="kirundi">Kirundi (IBB)</option>
+                                    <option value="francais">Français (LSG)</option>
+                                    <option value="english">English (KJV)</option>
+                                </select>
+                                <button id="searchVerseBtn">📖 Shakisha</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Search result -->
+                        <div id="verseDisplay" style="margin-top: 20px; display: none;"></div>
+                        
+                        <!-- Quick navigation by book -->
+                        <div style="margin-top: 25px;">
+                            <button id="showBooksBtn" style="background:#ffb347; color:#1e2a2e;">📚 Reba ibitabo vyose</button>
+                            <div id="bibleBooksList" style="margin-top: 15px; display: none;">
+                                <div class="bible-books-grid" id="booksGrid"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Management (Admin only) -->
+            <div id="usersPage" class="page-section">
+                <div class="card">
+                    <h2>👥 Gucunga abakoresha (CRUD)</h2>
+                    <div class="grid-2">
+                        <div>
+                            <div class="form-group"><label>Username (Izina ryakoresha)</label><input id="newUsername" placeholder="Ex: pasteur"></div>
+                            <div class="form-group"><label>Password (Ijambo ryibanga)</label><input type="password" id="newPassword"></div>
+                            <div class="form-group"><label>Rôle</label>
+                                <select id="newRole">
+                                    <option value="Pasteur">Pasteur (Admin)</option>
+                                    <option value="Umwanditsi">Umwanditsi</option>
+                                    <option value="Uwurongoye abaririmvyi">Uwurongoye abaririmvyi</option>
+                                    <option value="Abajejwe protocole">Abajejwe protocole</option>
+                                    <option value="Umubitsi">Umubitsi</option>
+                                    <option value="Umunyeahengero">Umunyeahengero</option>
+                                </select>
+                            </div>
+                            <button id="addUserBtn">➕ Ongeraho umukoresha</button>
+                        </div>
+                        <div class="data-list"><h3>📋 Abakoresha bariho</h3><ul id="usersList"></ul></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings (Admin only) -->
+            <div id="settingsPage" class="page-section">
+                <div class="card">
+                    <h2>⚙️ Ibigenderwaho / Paramètres</h2>
+                    <div class="settings-group">
+                        <h3>🏷️ Amakuru y'Ishengero</h3>
+                        <div class="form-group"><label>Izina ry'ishengero</label><input type="text" id="churchName" value="HOLY IMPACT CHURCH"></div>
+                        <div class="form-group"><label>Umurongo w'ibanze (Verset)</label><input type="text" id="churchVerse" value="Abefeso 2:21"></div>
+                    </div>
+                    <div class="settings-group">
+                        <h3>🔐 Umutekano</h3>
+                        <label><input type="checkbox" id="requireStrongPassword"> Gira password ikomeye</label><br>
+                        <label><input type="checkbox" id="sessionTimeout"> Gusohoka automatic nyuma ya 30min</label>
+                    </div>
+                    <button id="saveSettingsBtn">💾 Kubika ibigenderwaho</button>
+                </div>
+            </div>
+
+            <!-- Members Cards -->
+            <div id="membersPage" class="page-section">
+                <div class="card">
+                    <h2>🪪 Ikarita y'umunyeshengero</h2>
+                    <div class="form-group"><label>🔍 Shakisha umunyeshengero</label><input type="text" id="searchMember" placeholder="Andika izina..."></div>
+                    <div id="membersCardsContainer" class="members-grid"></div>
+                </div>
+            </div>
+
+            <!-- Chanteurs Profil -->
+            <div id="choraleProfilPage" class="page-section">
+                <div class="card">
+                    <h2>🎤 Profil n'Indongozi y'Abaririmvyi</h2>
+                    <div class="form-group"><label>Hitamo umuririmvyi</label>
+                        <select id="choraleSelect" onchange="loadChanteurProfil()">
+                            <option value="">-- Hitamo umuririmvyi --</option>
+                        </select>
+                    </div>
+                    <div id="choraleProfilContainer"><p>Hitamo umuririmvyi kugira ngo urebe profil yiwe</p></div>
+                </div>
+                <div class="card">
+                    <h2>➕ Kwiyongeraho ku muririmvyi</h2>
+                    <div class="grid-2">
+                        <div>
+                            <div class="form-group"><label>Indirimbo nshya yize</label><input id="chanteurSong" placeholder="Izina ry'indirimbo"></div>
+                            <button id="addSongBtn" onclick="addSongToChanteur()">➕ Ongeraho indirimbo</button>
+                        </div>
+                        <div>
+                            <div class="form-group"><label>Inama yitabiriye</label><input type="date" id="chanteurMeetingDate"><input id="chanteurMeetingDesc" placeholder="Ivyabaye"></div>
+                            <button id="addMeetingBtn" onclick="addMeetingToChanteur()">➕ Ongeraho inama</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Forum -->
+            <div id="forumPage" class="page-section">
+                <div class="card">
+                    <h2>💬 Ikibanza c'ibiganiro (Forum)</h2>
+                    <div class="form-group">
+                        <textarea id="newPostContent" rows="3" placeholder="Andika ibintu ugomba kuvuga hano..."></textarea>
+                        <button id="submitPostBtn">📤 Kwegera message</button>
+                    </div>
+                    <div id="forumPostsContainer"></div>
+                </div>
+            </div>
+
+            <!-- Media Gallery -->
+            <div id="mediaPage" class="page-section">
+                <div class="card">
+                    <h2>📸 Ibyo bishushanyo n'Amashusho (Media)</h2>
+                    <div class="form-group">
+                        <input type="file" id="mediaUpload" accept="image/*,video/*" capture>
+                        <button id="uploadMediaBtn">📤 Ongeraho media</button>
+                    </div>
+                    <div id="mediaGallery" class="media-grid"></div>
+                </div>
+            </div>
+
+            <!-- Other sections -->
+            <div id="budgetPage" class="page-section"><div class="card"><h2>💰 Ivyinjira n'Ibisohoka</h2><div class="grid-2"><div><h3>📈 Ivyinjira</h3><input type="number" id="entreeMontant" placeholder="Amafaranga"><input type="date" id="entreeDate"><button id="addEntreeBtn">➕ Ongeraho</button><div class="data-list"><ul id="entreesList"></ul></div></div><div><h3>📉 Ibisohoka</h3><input type="number" id="sortieMontant" placeholder="Amafaranga"><input type="date" id="sortieDate"><button id="addSortieBtn">➖ Ongeraho</button><div class="data-list"><ul id="sortiesList"></ul></div></div></div><div class="card" style="background:#1a5e6e; color:white;"><h3>💰 Isigari (Solde)</h3><div class="stat-number" id="soldeValue" style="color:#ffb347;">0 FRW</div></div></div></div>
+            <div id="offrandesPage" class="page-section"><div class="card"><h2>💰 Amashikanwa</h2><input id="offNom" placeholder="Izina"><input type="number" id="offMontant" placeholder="Amafaranga"><input type="date" id="offDate"><button id="addOffrandeBtn">Kubika</button><div class="data-list"><ul id="offrandesList"></ul></div></div></div>
+            <div id="inamaPage" class="page-section"><div class="card"><h2>📅 Inama</h2><input id="inamaTitle" placeholder="Izina ry'inama"><input type="date" id="inamaDate"><input id="inamaTime" placeholder="Igihe"><button id="addInamaBtn">Ongeraho</button><div class="data-list"><ul id="inamaList"></ul></div></div></div>
+            <div id="enfantsPage" class="page-section"><div class="card"><h2>🧒 Abana</h2><input id="enfantNom" placeholder="Izina"><input type="number" id="enfantAge" placeholder="Imyaka"><button id="addEnfantBtn">Yandikisha</button><div class="data-list"><ul id="enfantsList"></ul></div></div></div>
+            <div id="hommesPage" class="page-section"><div class="card"><h2>👨 Abagabo</h2><input id="hommeNom" placeholder="Izina"><input id="hommePhone" placeholder="Telefone"><button id="addHommeBtn">Ongeraho</button><div class="data-list"><ul id="hommesList"></ul></div></div></div>
+            <div id="femmesPage" class="page-section"><div class="card"><h2>👩 Abagore</h2><input id="femmeNom" placeholder="Izina"><input id="femmePhone" placeholder="Telefone"><button id="addFemmeBtn">Ongeraho</button><div class="data-list"><ul id="femmesList"></ul></div></div></div>
+            <div id="baptisesPage" class="page-section"><div class="card"><h2>💧 Ababatijwe</h2><input id="baptiseNom" placeholder="Izina"><input type="date" id="baptiseDate"><button id="addBaptiseBtn">Ongeraho</button><div class="data-list"><ul id="baptisesList"></ul></div></div></div>
+            <div id="inventairePage" class="page-section"><div class="card"><h2>📦 Ibikoresho (Inventaire)</h2><input id="invNom" placeholder="Ikintu"><input type="number" id="invQuantite" placeholder="Umubare"><input type="number" id="invPrix" placeholder="Agaciro k'imwe"><button id="addInventaireBtn">Ongeraho</button><div class="data-list"><ul id="inventaireList"></ul></div></div></div>
+            <div id="rapportsPage" class="page-section"><div class="card"><h2>📑 Indongozi (Rapport)</h2><select id="rapportCategory"><option value="all">Indongozi yose</option><option value="chorale">Indongozi y'ab aririmvyi</option><option value="budget">Indongozi y'amafaranga</option></select><button id="genRapportBtn">🔍 Kora indongozi</button><div id="rapportResult" class="rapport-result" style="margin-top:20px;"></div></div></div>
+        </div>
+    </div>
+    <div class="offline-badge" id="offlineStatus">🌐 Ikirungu kiriko kirakora</div>
+
+    <script>
+        // ===================== DONNÉES BIBLIQUES POUR OFFLINE =====================
+        // Base de données biblique offline (version courte pour démonstration)
+        const offlineBible = {
+            "Yohani 3:16": "Kuko Imana yakunze abari mu isi cane, Iragaba Umwana wayo w'ikinege, kugira ngo umuntu wese ari wundi amwizera ntapfakwe, ariko abe ubugingo buhoraho.",
+            "Zaburi 23:1": "Uhoraho ni wo mwungeri wanjye, ntakintu nzakenera.",
+            "Zaburi 23:2": "Andundarira mu nyasi z'ibisi, anyambutsa ku mazi y'akahuzure.",
+            "Yesaya 40:31": "Ariko abategereje Uhoraho bazahabwa imbaraga nshya; bazazamuka bajira ibaba nk'inkona; biziruka ntibarananirwe, bizagendagenda ntibazagwe.",
+            "Abakolosayi 3:10": "Mwambare umuntu mushya, ugenda uvugururwa kugira ngo amenyane na Shure wiwe.",
+            "Abefeso 2:21": "Mu We isinzu ryose rihujwe neza rikura kikaba urusengero rwera mu Mwami.",
+            "Matayo 28:19": "Nimugende rero mugahindure amahanga yose abigishwa, mubabatiza mw'izina rya Data, n'iry'Umwana, n'iry'Umwuka Wera.",
+            "Yeremiya 29:11": "Kuko nzi ibiganiro mbateguriye, ni ivy'uguhwemu, atari ivy'ikibi, kugira ngo mbaharanire ibiringiro n'ejo hiza."
+        };
+        
+        const bibleBooks = ["Itanguriro", "Kuva", "Abalewi", "Kubara", "Gusubira mu vyagezwe", "Yosuwa", "Abacamanza", "Rusi", "Samueli 1", "Samueli 2", "Zaburi", "Imigani", "Umubwiriza", "Yesaya", "Yeremiya", "Yohani", "Ivyakozwe", "Abaroma", "Abakolosayi", "Abefeso"];
+
+        // ===================== USERS =====================
+        let systemUsers = [
+            { username: "pasteur", password: "pasteur123", role: "Pasteur" },
+            { username: "umwanditsi", password: "wanditsi123", role: "Umwanditsi" },
+            { username: "umurongozi", password: "chorale123", role: "Uwurongoye abaririmvyi" }
+        ];
+
+        // Données des chanteurs avec rapport individuel
+        let choraleMembers = [
+            { id: 1, nom: "Jean Niyonzima", groupe: "Louange", phone: "79xxxxxx", dateCreation: "2024-01-15", songs: ["Hallelujah", "Amen Praise"], meetings: [{ date: "2024-12-01", description: "Répétition générale" }, { date: "2024-12-10", description: "Culte de Noël" }] },
+            { id: 2, nom: "Alice Uwimana", groupe: "Adoration", phone: "78xxxxxx", dateCreation: "2024-02-20", songs: ["Tu es digne", "Merci Seigneur"], meetings: [{ date: "2024-12-05", description: "Répétition chorale" }] }
+        ];
+
+        let forumPosts = [
+            { id: 1, author: "pasteur", content: "Mwese mwaramutse! Mugukurikirane ibikorwa vyo gushinga udushasha tw'ishengero.", date: "2024-12-15", likes: 5, dislikes: 0, comments: [{ author: "Jean", text: "Urakoze Pasteur!" }] },
+            { id: 2, author: "umurongozi", content: "Imyitozo y'abaririmvyi ku wa gatatu saa sita z'umugoroba.", date: "2024-12-16", likes: 2, dislikes: 0, comments: [] }
+        ];
+
+        let mediaItems = [
+            { id: 1, type: "image", url: "https://via.placeholder.com/300x200/1a5e6e/white?text=Ishengero", date: "2024-12-10" }
+        ];
+
+        let churchData = {
+            offrandes: [], inamas: [], enfants: [], hommes: [], femmes: [], baptises: [], inventaire: [], entrees: [], sorties: []
+        };
+        
+        let currentUser = null, currentRole = "";
+        let editingUserId = null;
+
+        let appSettings = {
+            churchName: "HOLY IMPACT CHURCH",
+            churchVerse: "Abefeso 2:21",
+            requireStrongPassword: false,
+            sessionTimeout: false
+        };
+
+        // ===================== BIBLE FUNCTIONS =====================
+        function updateBibleStatus() {
+            const statusDiv = document.getElementById("bibleStatus");
+            if(navigator.onLine) {
+                statusDiv.innerHTML = "🌐 Igikoranye na interineti - Ushobora gushakisha Bibiliya yose";
+                statusDiv.style.background = "#c6f6d5";
+                statusDiv.style.color = "#22543d";
+            } else {
+                statusDiv.innerHTML = "📴 Nta interineti - Ukoresha Bibiliya y'ibanze (Offline)";
+                statusDiv.style.background = "#fed7d7";
+                statusDiv.style.color = "#742a2a";
+            }
+        }
+
+        async function searchVerse() {
+            const reference = document.getElementById("verseReference").value.trim();
+            const translation = document.getElementById("translationSelect").value;
+            const verseDisplay = document.getElementById("verseDisplay");
+            const verseOfTheDayDiv = document.getElementById("verseOfTheDay");
+            
+            if(reference === "") {
+                alert("Andika icapfa c'Bibiliya! Urugero: Yohani 3:16");
+                return;
+            }
+            
+            verseDisplay.style.display = "block";
+            verseDisplay.innerHTML = "<p>Ikirangura... Ndashakisha...</p>";
+            verseOfTheDayDiv.style.display = "none";
+            
+            // Try offline first for Kirundi
+            if(translation === "kirundi" && offlineBible[reference]) {
+                verseDisplay.innerHTML = `
+                    <div class="verse-card">
+                        <div class="verse-reference">${reference}</div>
+                        <div class="verse-text">${offlineBible[reference]}</div>
+                        <div style="margin-top: 15px;">
+                            <button onclick="copyVerseText('${offlineBible[reference].replace(/'/g, "\\'")}')" style="background:#1a5e6e;">📋 Koporora</button>
+                        </div>
+                        <div style="margin-top: 10px; font-size:0.7rem; color:#888;">📴 Ikoresheje Bibiliya y'ibanze (Offline)</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Try online API
+            if(navigator.onLine) {
+                try {
+                    const translationMap = { 'kirundi': 'kirundi', 'francais': 'francais', 'english': 'kjv' };
+                    const encodedRef = encodeURIComponent(reference);
+                    const apiUrl = `https://bible-api.com/${encodedRef}?translation=${translationMap[translation]}`;
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+                    
+                    if(data.error) {
+                        if(translation === "kirundi") {
+                            verseDisplay.innerHTML = `<div class="verse-card"><div class="verse-reference">${reference}</div><div class="verse-text">Icapfa ntikibonetse muri Bibiliya yacu. Gerageza ikindi capfa cyangwa uhebe interineti.</div></div>`;
+                        } else {
+                            verseDisplay.innerHTML = `<div class="verse-card"><div class="verse-reference">${reference}</div><div class="verse-text">❌ Icapfa ntikibonetse. Gerageza: Yohani 3:16, Zaburi 23:1</div></div>`;
+                        }
+                    } else {
+                        verseDisplay.innerHTML = `
+                            <div class="verse-card">
+                                <div class="verse-reference">${data.reference}</div>
+                                <div class="verse-text">${data.text}</div>
+                                <div style="margin-top: 15px;">
+                                    <button onclick="copyVerseText('${data.text.replace(/'/g, "\\'")}')" style="background:#1a5e6e;">📋 Koporora</button>
+                                </div>
+                                <div style="margin-top: 10px; font-size:0.7rem; color:#888;">🌐 Ikoresheje interineti</div>
+                            </div>
+                        `;
+                    }
+                } catch(error) {
+                    verseDisplay.innerHTML = `<div class="verse-card"><div class="verse-text">❌ Interineti irakinge. Ushakisha muri Bibiliya y'ibanze...</div></div>`;
+                    if(translation === "kirundi" && offlineBible[reference]) {
+                        verseDisplay.innerHTML = `
+                            <div class="verse-card">
+                                <div class="verse-reference">${reference}</div>
+                                <div class="verse-text">${offlineBible[reference]}</div>
+                                <div style="margin-top: 10px; font-size:0.7rem; color:#888;">📴 Ikoresheje Bibiliya y'ibanze</div>
+                            </div>
+                        `;
+                    }
+                }
+            } else {
+                if(translation === "kirundi" && offlineBible[reference]) {
+                    verseDisplay.innerHTML = `
+                        <div class="verse-card">
+                            <div class="verse-reference">${reference}</div>
+                            <div class="verse-text">${offlineBible[reference]}</div>
+                            <div style="margin-top: 10px; font-size:0.7rem; color:#888;">📴 Nta interineti - Bibiliya y'ibanze</div>
+                        </div>
+                    `;
+                } else {
+                    verseDisplay.innerHTML = `<div class="verse-card"><div class="verse-text">📴 Nta interineti kandi iki capfa ntikiri muri Bibiliya y'ibanze. Gerageza: Yohani 3:16, Zaburi 23:1, Yesaya 40:31</div></div>`;
+                }
+            }
+        }
+        
+        function copyVerseText(text) {
+            navigator.clipboard.writeText(text);
+            alert("Icapfa ryakoporowe!");
+        }
+        
+        function showVerseOfTheDay() {
+            const verseDiv = document.getElementById("verseOfTheDay");
+            verseDiv.style.display = "block";
+            const verses = Object.keys(offlineBible);
+            const randomVerse = verses[Math.floor(Math.random() * verses.length)];
+            document.querySelector("#verseOfTheDay .verse-reference").innerHTML = randomVerse;
+            document.querySelector("#verseOfTheDay .verse-text").innerHTML = offlineBible[randomVerse];
+        }
+        
+        function toggleBooksList() {
+            const booksList = document.getElementById("bibleBooksList");
+            if(booksList.style.display === "none") {
+                booksList.style.display = "block";
+                const booksGrid = document.getElementById("booksGrid");
+                booksGrid.innerHTML = bibleBooks.map(book => `<button class="book-btn" onclick="selectBook('${book}')">${book}</button>`).join('');
+            } else {
+                booksList.style.display = "none";
+            }
+        }
+        
+        function selectBook(book) {
+            document.getElementById("verseReference").value = `${book} 1:1`;
+            searchVerse();
+            document.getElementById("bibleBooksList").style.display = "none";
+        }
+
+        // ===================== MENU =====================
+        const allMenus = [
+            { id: "dashboard", label: "Umurongo w'ibanze", icon: "📊", roles: ["Pasteur", "Uwurongoye abaririmvyi", "Umwanditsi"] },
+            { id: "bible", label: "📖 Bibiliya", icon: "📖", roles: ["Pasteur", "Uwurongoye abaririmvyi", "Umwanditsi", "Umunyeahengero"] },
+            { id: "users", label: "👥 Gucunga Abakoresha", icon: "👥", roles: ["Pasteur"] },
+            { id: "settings", label: "⚙️ Ibigenderwaho", icon: "⚙️", roles: ["Pasteur"] },
+            { id: "members", label: "Ikarita y'Abanyeshuri", icon: "🪪", roles: ["Pasteur", "Umwanditsi"] },
+            { id: "choraleProfil", label: "🎤 Profil Abaririmvyi", icon: "🎤", roles: ["Pasteur", "Uwurongoye abaririmvyi", "Umwanditsi"] },
+            { id: "forum", label: "💬 Ikibanza c'ibiganiro", icon: "💬", roles: ["Pasteur", "Uwurongoye abaririmvyi", "Umwanditsi", "Umunyeahengero"] },
+            { id: "media", label: "📸 Ibyo bishushanyo", icon: "📸", roles: ["Pasteur", "Uwurongoye abaririmvyi", "Umwanditsi"] },
+            { id: "budget", label: "💰 Ivyinjira/Ibisohoka", icon: "💰", roles: ["Pasteur", "Umwanditsi"] },
+            { id: "offrandes", label: "💸 Amashikanwa", icon: "💸", roles: ["Pasteur", "Umwanditsi"] },
+            { id: "inama", label: "📅 Inama", icon: "📅", roles: ["Pasteur", "Umwanditsi"] },
+            { id: "enfants", label: "🧒 Abana", icon: "🧒", roles: ["Pasteur", "Umwanditsi"] },
+            { id: "hommes", label: "👨 Abagabo", icon: "👨", roles: ["Pasteur", "Umwanditsi"] },
+            { id: "femmes", label: "👩 Abagore", icon: "👩", roles: ["Pasteur", "Umwanditsi"] },
+            { id: "baptises", label: "💧 Ababatijwe", icon: "💧", roles: ["Pasteur", "Umwanditsi"] },
+            { id: "inventaire", label: "📦 Ibikoresho", icon: "📦", roles: ["Pasteur", "Umwanditsi"] },
+            { id: "rapports", label: "📑 Indongozi", icon: "📑", roles: ["Pasteur", "Uwurongoye abaririmvyi", "Umwanditsi"] }
+        ];
+
+        function buildMenu() {
+            let container = document.getElementById("menuContainer");
+            let menusToShow = allMenus.filter(m => m.roles.includes(currentRole));
+            container.innerHTML = menusToShow.map(m => `<div class="menu-item" data-page="${m.id}"><div class="menu-icon">${m.icon}</div><span>${m.label}</span></div>`).join('');
+            document.querySelectorAll("#menuContainer .menu-item").forEach(item => {
+                item.addEventListener("click", () => {
+                    let page = item.dataset.page;
+                    document.querySelectorAll(".page-section").forEach(sec => sec.classList.remove("active-section"));
+                    document.getElementById(`${page}Page`).classList.add("active-section");
+                    document.querySelectorAll("#menuContainer .menu-item").forEach(m=>m.classList.remove("active"));
+                    item.classList.add("active");
+                    if(page === "members") renderMemberCards();
+                    if(page === "users") refreshUsersList();
+                    if(page === "forum") renderForumPosts();
+                    if(page === "media") renderMediaGallery();
+                    if(page === "choraleProfil") { updateChoraleSelect(); loadChanteurProfil(); }
+                    if(page === "bible") { updateBibleStatus(); showVerseOfTheDay(); }
+                    closeSidebarOnMobile();
+                });
+            });
+            if(menusToShow.length) document.querySelector("#menuContainer .menu-item")?.classList.add("active");
+            document.getElementById("userRoleDisplay").innerHTML = currentRole;
+        }
+
+        function closeSidebarOnMobile() { if(window.innerWidth <= 768) document.getElementById("sidebar").classList.remove("open"); }
+
+        // ===================== USER MANAGEMENT =====================
+        function saveUsers() { localStorage.setItem("holy_impact_users", JSON.stringify(systemUsers)); }
+        function loadUsers() { let saved = localStorage.getItem("holy_impact_users"); if(saved) systemUsers = JSON.parse(saved); }
+        
+        function refreshUsersList() {
+            let container = document.getElementById("usersList");
+            if(!container) return;
+            container.innerHTML = systemUsers.map((u, i) => `<li><div><strong>${u.username}</strong> - ${u.role}</div><div><button class="edit-btn" data-user-idx="${i}">✏️</button><button class="delete-btn" data-user-idx="${i}" ${u.username === currentUser ? 'disabled' : ''}>🗑️</button></div></li>`).join('');
+            document.querySelectorAll(".edit-btn").forEach(btn => btn.addEventListener("click", (e) => { let idx = parseInt(btn.dataset.userIdx); editingUserId = idx; document.getElementById("editUsername").value = systemUsers[idx].username; document.getElementById("editPassword").value = ""; document.getElementById("editRole").value = systemUsers[idx].role; document.getElementById("editUserModal").style.display = "flex"; }));
+            document.querySelectorAll(".delete-btn").forEach(btn => btn.addEventListener("click", (e) => { let idx = parseInt(btn.dataset.userIdx); if(systemUsers[idx].username !== currentUser && confirm("Gusiba?")) { systemUsers.splice(idx,1); saveUsers(); refreshUsersList(); } }));
+        }
+        
+        function addUser() {
+            let username = document.getElementById("newUsername").value.toLowerCase().trim();
+            let password = document.getElementById("newPassword").value;
+            let role = document.getElementById("newRole").value;
+            if(!username || !password) { alert("Andika username n'ijambo ryibanga!"); return; }
+            if(systemUsers.find(u => u.username === username)) { alert("Username irahari!"); return; }
+            systemUsers.push({ username, password, role });
+            saveUsers(); refreshUsersList();
+            document.getElementById("newUsername").value = ""; document.getElementById("newPassword").value = "";
+        }
+        
+        function saveEditUser() {
+            let username = document.getElementById("editUsername").value.toLowerCase().trim();
+            let password = document.getElementById("editPassword").value;
+            let role = document.getElementById("editRole").value;
+            if(!username) return;
+            if(password) systemUsers[editingUserId].password = password;
+            systemUsers[editingUserId].username = username;
+            systemUsers[editingUserId].role = role;
+            saveUsers(); refreshUsersList();
+            document.getElementById("editUserModal").style.display = "none";
+        }
+
+        // ===================== CHANTEUR PROFIL =====================
+        function updateChoraleSelect() {
+            let select = document.getElementById("choraleSelect");
+            if(select) select.innerHTML = `<option value="">-- Hitamo umuririmvyi --</option>` + choraleMembers.map(c => `<option value="${c.id}">${c.nom} (${c.groupe})</option>`).join('');
+        }
+
+        function loadChanteurProfil() {
+            let id = parseInt(document.getElementById("choraleSelect").value);
+            let chanteur = choraleMembers.find(c => c.id === id);
+            let container = document.getElementById("choraleProfilContainer");
+            if(!chanteur) { container.innerHTML = "<p>Hitamo umuririmvyi</p>"; return; }
+            
+            let totalSongs = chanteur.songs.length;
+            let totalMeetings = chanteur.meetings.length;
+            let rapportHtml = `
+                <div class="profil-header" style="display:flex; gap:20px; align-items:center; margin-bottom:20px; flex-wrap:wrap;">
+                    <div class="profil-avatar" style="width:80px; height:80px; background:linear-gradient(135deg,#ffb347,#ff8c42); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:40px;">🎤</div>
+                    <div>
+                        <h2>${chanteur.nom}</h2>
+                        <p>🎵 Umujyi: ${chanteur.groupe} | 📞 ${chanteur.phone}</p>
+                        <p>📅 Yitabiriye kuva: ${chanteur.dateCreation}</p>
+                    </div>
+                </div>
+                <div class="profil-stats" style="display:flex; gap:20px; margin-bottom:20px; flex-wrap:wrap;">
+                    <div class="profil-stat" style="background:#f8fafc; padding:15px 25px; border-radius:20px; text-align:center;"><div class="number" style="font-size:1.8rem; font-weight:bold; color:#ff8c42;">${totalSongs}</div><div>Indirimbo yize</div></div>
+                    <div class="profil-stat" style="background:#f8fafc; padding:15px 25px; border-radius:20px; text-align:center;"><div class="number" style="font-size:1.8rem; font-weight:bold; color:#ff8c42;">${totalMeetings}</div><div>Inama yitabiriye</div></div>
+                </div>
+                <div class="rapport-individuel" style="background:#eef2f6; border-radius:20px; padding:20px;">
+                    <h3>📋 Indirimbo yize</h3>
+                    <ul>${chanteur.songs.map(s => `<li>🎵 ${s}</li>`).join('') || "<li>Nta ndirimbo yize</li>"}</ul>
+                    <h3>📅 Inama yitabiriye</h3>
+                    <ul>${chanteur.meetings.map(m => `<li>📌 ${m.date}: ${m.description}</li>`).join('') || "<li>Nta nama</li>"}</ul>
+                    <h3>📊 Indongozi ya ${chanteur.nom}</h3>
+                    <p>Umuririmvyi ${chanteur.nom} yize indirimbo ${totalSongs} kandi yitabiriye inama ${totalMeetings}.</p>
+                    <p><strong>Itariki:</strong> ${new Date().toLocaleDateString('fr-FR')}</p>
+                </div>
+            `;
+            container.innerHTML = rapportHtml;
+        }
+
+        function addSongToChanteur() {
+            let id = parseInt(document.getElementById("choraleSelect").value);
+            let song = document.getElementById("chanteurSong").value.trim();
+            if(!id || !song) { alert("Hitamo umuririmvyi kandi wandike indirimbo!"); return; }
+            let chanteur = choraleMembers.find(c => c.id === id);
+            if(chanteur) { chanteur.songs.push(song); saveChoraleData(); loadChanteurProfil(); document.getElementById("chanteurSong").value = ""; }
+        }
+
+        function addMeetingToChanteur() {
+            let id = parseInt(document.getElementById("choraleSelect").value);
+            let date = document.getElementById("chanteurMeetingDate").value;
+            let desc = document.getElementById("chanteurMeetingDesc").value.trim();
+            if(!id || !date || !desc) { alert("Hitamo umuririmvyi, andika itariki n'ibyabaye!"); return; }
+            let chanteur = choraleMembers.find(c => c.id === id);
+            if(chanteur) { chanteur.meetings.push({ date, description: desc }); saveChoraleData(); loadChanteurProfil(); document.getElementById("chanteurMeetingDate").value = ""; document.getElementById("chanteurMeetingDesc").value = ""; }
+        }
+
+        function saveChoraleData() { localStorage.setItem("chorale_members", JSON.stringify(choraleMembers)); }
+        function loadChoraleData() { let saved = localStorage.getItem("chorale_members"); if(saved) choraleMembers = JSON.parse(saved); }
+
+        // ===================== FORUM =====================
+        function renderForumPosts() {
+            let container = document.getElementById("forumPostsContainer");
+            if(!container) return;
+            container.innerHTML = forumPosts.map(post => `
+                <div class="forum-post">
+                    <div class="forum-post-header">
+                        <span class="forum-author">✍️ ${post.author}</span>
+                        <span class="forum-date">📅 ${post.date}</span>
+                    </div>
+                    <div class="forum-content">${post.content}</div>
+                    <div class="forum-reactions">
+                        <button class="reaction-btn ${post.userLiked ? 'liked' : ''}" onclick="likePost(${post.id})">👍 ${post.likes}</button>
+                        <button class="reaction-btn ${post.userDisliked ? 'disliked' : ''}" onclick="dislikePost(${post.id})">👎 ${post.dislikes}</button>
+                    </div>
+                    <div class="forum-comments">
+                        ${post.comments.map(c => `<div class="forum-comment"><strong>${c.author}:</strong> ${c.text}</div>`).join('')}
+                        <div class="comment-form">
+                            <input type="text" id="commentInput-${post.id}" placeholder="Andika igitekerezo..." style="flex:1;">
+                            <button onclick="addComment(${post.id})">💬</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function likePost(postId) {
+            let post = forumPosts.find(p => p.id === postId);
+            if(post) { post.likes++; post.userLiked = true; saveForumData(); renderForumPosts(); }
+        }
+        function dislikePost(postId) {
+            let post = forumPosts.find(p => p.id === postId);
+            if(post) { post.dislikes++; post.userDisliked = true; saveForumData(); renderForumPosts(); }
+        }
+        function addComment(postId) {
+            let input = document.getElementById(`commentInput-${postId}`);
+            let text = input.value.trim();
+            if(!text) return;
+            let post = forumPosts.find(p => p.id === postId);
+            if(post) { post.comments.push({ author: currentUser, text: text }); saveForumData(); renderForumPosts(); input.value = ""; }
+        }
+        function submitNewPost() {
+            let content = document.getElementById("newPostContent").value.trim();
+            if(!content) { alert("Andika message!"); return; }
+            forumPosts.unshift({ id: Date.now(), author: currentUser, content: content, date: new Date().toISOString().slice(0,10), likes: 0, dislikes: 0, comments: [] });
+            saveForumData(); renderForumPosts(); document.getElementById("newPostContent").value = "";
+        }
+        function saveForumData() { localStorage.setItem("forum_posts", JSON.stringify(forumPosts)); }
+        function loadForumData() { let saved = localStorage.getItem("forum_posts"); if(saved) forumPosts = JSON.parse(saved); }
+
+        // ===================== MEDIA =====================
+        function renderMediaGallery() {
+            let container = document.getElementById("mediaGallery");
+            if(!container) return;
+            container.innerHTML = mediaItems.map(item => `
+                <div class="media-item" onclick="openMedia('${item.url}', '${item.type}')">
+                    ${item.type === 'image' ? `<img src="${item.url}" alt="Media">` : `<video src="${item.url}"></video>`}
+                    <div class="media-actions">
+                        <button onclick="event.stopPropagation(); deleteMedia(${item.id})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openMedia(url, type) {
+            let modal = document.getElementById("mediaModal");
+            let img = document.getElementById("modalImage");
+            let video = document.getElementById("modalVideo");
+            img.style.display = 'none'; video.style.display = 'none';
+            if(type === 'image') { img.src = url; img.style.display = 'block'; }
+            else { video.src = url; video.style.display = 'block'; video.play(); }
+            modal.style.display = 'flex';
+        }
+        function closeMediaModal() { document.getElementById("mediaModal").style.display = 'none'; document.getElementById("modalVideo").pause(); }
+        function deleteMedia(id) { if(confirm("Gusiba iyi media?")) { mediaItems = mediaItems.filter(m => m.id !== id); saveMediaData(); renderMediaGallery(); } }
+        function uploadMedia() {
+            let fileInput = document.getElementById("mediaUpload");
+            let file = fileInput.files[0];
+            if(!file) { alert("Hitamo dosiye!"); return; }
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                let url = e.target.result;
+                let type = file.type.startsWith('image') ? 'image' : 'video';
+                mediaItems.push({ id: Date.now(), type: type, url: url, date: new Date().toISOString().slice(0,10) });
+                saveMediaData(); renderMediaGallery();
+            };
+            reader.readAsDataURL(file);
+        }
+        function saveMediaData() { localStorage.setItem("media_items", JSON.stringify(mediaItems)); }
+        function loadMediaData() { let saved = localStorage.getItem("media_items"); if(saved) mediaItems = JSON.parse(saved); }
+
+        // ===================== AUTRES FONCTIONS =====================
+        function getTotalEntrees() { return churchData.entrees.reduce((sum, e) => sum + e.montant, 0); }
+        function getTotalSorties() { return churchData.sorties.reduce((sum, s) => sum + s.montant, 0); }
+        function getSolde() { return getTotalEntrees() - getTotalSorties(); }
+        function getInventaireTotalValue() { return churchData.inventaire.reduce((total, item) => total + ((item.prix || 0) * (item.quantite || 0)), 0); }
+
+        function refreshDashboard() {
+            let totalMembres = choraleMembers.length + churchData.enfants.length + churchData.hommes.length + churchData.femmes.length + churchData.baptises.length;
+            let solde = getSolde();
+            let inventaireTotal = getInventaireTotalValue();
+            document.getElementById("dashboardStats").innerHTML = `
+                <div class="stat-card"><div class="stat-number">${totalMembres}</div><div class="stat-label">Abanyeshuri</div></div>
+                <div class="stat-card"><div class="stat-number">${solde.toLocaleString()} FRW</div><div class="stat-label">Isigari (Solde)</div></div>
+                <div class="stat-card"><div class="stat-number">${forumPosts.length}</div><div class="stat-label">Ubutumwa</div></div>
+                <div class="stat-card"><div class="stat-number">${choraleMembers.length}</div><div class="stat-label">Abaririmvyi</div></div>
+            `;
+            document.getElementById("upcomingMeetings").innerHTML = churchData.inamas.slice(0,3).map(m => `<li><strong>${m.title}</strong> - ${m.date} ${m.time || ''}</li>`).join('') || "<p>Nta nama iri bugufi</p>";
+            document.getElementById("currentSolde").innerHTML = solde.toLocaleString() + " FRW";
+            document.getElementById("inventaireTotalValue").innerHTML = inventaireTotal.toLocaleString() + " FRW";
+            document.getElementById("roleDisplayBadge").innerHTML = `<span class="role-badge">${currentRole}</span> ${currentUser}`;
+        }
+
+        function refreshAllLists() {
+            document.getElementById("offrandesList").innerHTML = churchData.offrandes.map((o,i)=>`<li>${o.date||''} ${o.nom} - ${o.montant.toLocaleString()} FRW <button class="delete-btn" data-idx="${i}" data-type="offrande">✖</button></li>`).join('');
+            document.getElementById("inamaList").innerHTML = churchData.inamas.map((m,i)=>`<li>${m.date} ${m.title} ${m.time || ''} <button class="delete-btn" data-idx="${i}" data-type="inama">✖</button></li>`).join('');
+            document.getElementById("enfantsList").innerHTML = churchData.enfants.map((e,i)=>`<li>${e.nom}, ${e.age} ans <button class="delete-btn" data-idx="${i}" data-type="enfant">✖</button></li>`).join('');
+            document.getElementById("hommesList").innerHTML = churchData.hommes.map((h,i)=>`<li>${h.nom} - ${h.phone} <button class="delete-btn" data-idx="${i}" data-type="homme">✖</button></li>`).join('');
+            document.getElementById("femmesList").innerHTML = churchData.femmes.map((f,i)=>`<li>${f.nom} - ${f.phone} <button class="delete-btn" data-idx="${i}" data-type="femme">✖</button></li>`).join('');
+            document.getElementById("baptisesList").innerHTML = churchData.baptises.map((b,i)=>`<li>${b.nom} - ${b.dateBapteme} <button class="delete-btn" data-idx="${i}" data-type="baptise">✖</button></li>`).join('');
+            document.getElementById("inventaireList").innerHTML = churchData.inventaire.map((item,i)=>`<li>📦 ${item.nom} x${item.quantite} = ${((item.prix||0)*item.quantite).toLocaleString()} FRW <button class="delete-btn" data-idx="${i}" data-type="inventaire">✖</button></li>`).join('');
+            document.getElementById("entreesList").innerHTML = churchData.entrees.map((e,i)=>`<li>${e.montant.toLocaleString()} FRW - ${e.date || ''} <button class="delete-btn" data-idx="${i}" data-type="entree">✖</button></li>`).join('');
+            document.getElementById("sortiesList").innerHTML = churchData.sorties.map((s,i)=>`<li>${s.montant.toLocaleString()} FRW - ${s.date || ''} <button class="delete-btn" data-idx="${i}" data-type="sortie">✖</button></li>`).join('');
+            document.getElementById("soldeValue").innerHTML = getSolde().toLocaleString() + " FRW";
+            refreshDashboard();
+        }
+
+        function generateProfessionalRapport() {
+            let cat = document.getElementById("rapportCategory").value;
+            let today = new Date().toLocaleDateString('fr-FR');
+            let totalMembres = choraleMembers.length + churchData.enfants.length + churchData.hommes.length + churchData.femmes.length;
+            let html = `<div style="padding:20px; font-family:'Times New Roman',serif;"><div style="text-align:center; border-bottom:2px solid #ffb347; padding-bottom:15px;"><h1 style="color:#1a5e6e;">⛪ HOLY IMPACT CHURCH</h1><div>"Abefeso 2:21"</div></div><p><strong>Itariki:</strong> ${today}</p><p><strong>Yakozwe na:</strong> ${currentUser} (${currentRole})</p><hr>`;
+            if(cat === "all") {
+                html += `<h2>📊 Indongozi yose</h2><p>Abanyeshuri bose: ${totalMembres}</p><p>Isigari (Solde): ${getSolde().toLocaleString()} FRW</p><p>Abaririmvyi: ${choraleMembers.length}</p>`;
+                html += `<h3>Abaririmvyi ku giti cabo</h3><ul>${choraleMembers.map(c => `<li>${c.nom}: ${c.songs.length} indirimbo, ${c.meetings.length} inama</li>`).join('')}</ul>`;
+            }
+            if(cat === "chorale") {
+                html += `<h2>🎤 Indongozi y'Abaririmvyi</h2><p>Umubare wabo: ${choraleMembers.length}</p><ul>${choraleMembers.map(c => `<li><strong>${c.nom}</strong> - Indirimbo: ${c.songs.length} - Inama: ${c.meetings.length}</li>`).join('')}</ul>`;
+            }
+            if(cat === "budget") {
+                html += `<h2>💰 Indongozi y'Amafaranga</h2><p>Ivyinjira: ${getTotalEntrees().toLocaleString()} FRW</p><p>Ibisohoka: ${getTotalSorties().toLocaleString()} FRW</p><p><strong>Isigari: ${getSolde().toLocaleString()} FRW</strong></p>`;
+            }
+            html += `<div style="margin-top:40px;"><div style="display:flex; justify-content:space-between;"><div>Umwanditsi: _________________</div><div>Pasteur: _________________</div></div></div></div>`;
+            document.getElementById("rapportResult").innerHTML = html;
+        }
+
+        function handleDelete(e) {
+            let btn = e.target;
+            if(!btn.classList.contains('delete-btn')) return;
+            let idx = btn.dataset.idx, type = btn.dataset.type;
+            if(type === 'offrande') churchData.offrandes.splice(idx,1);
+            if(type === 'inama') churchData.inamas.splice(idx,1);
+            if(type === 'enfant') churchData.enfants.splice(idx,1);
+            if(type === 'homme') churchData.hommes.splice(idx,1);
+            if(type === 'femme') churchData.femmes.splice(idx,1);
+            if(type === 'baptise') churchData.baptises.splice(idx,1);
+            if(type === 'inventaire') churchData.inventaire.splice(idx,1);
+            if(type === 'entree') churchData.entrees.splice(idx,1);
+            if(type === 'sortie') churchData.sorties.splice(idx,1);
+            saveData(); refreshAllLists();
+        }
+
+        function saveData() { localStorage.setItem("holy_impact_data", JSON.stringify(churchData)); }
+        function loadData() {
+            let saved = localStorage.getItem("holy_impact_data");
+            if(saved) { let d = JSON.parse(saved); churchData = { ...churchData, ...d }; }
+            else {
+                churchData.entrees = [{ montant: 50000, date: new Date().toISOString().slice(0,10) }];
+                churchData.inventaire = [{ nom: "Makaroni", quantite: 4, prix: 150000 }];
+                churchData.hommes = [{ nom: "Paul Habimana", phone: "79xxxxxx" }];
+                churchData.femmes = [{ nom: "Jeanne Mukamana", phone: "78xxxxxx" }];
+            }
+        }
+
+        function saveSettings() {
+            appSettings.churchName = document.getElementById("churchName").value;
+            appSettings.churchVerse = document.getElementById("churchVerse").value;
+            appSettings.requireStrongPassword = document.getElementById("requireStrongPassword").checked;
+            appSettings.sessionTimeout = document.getElementById("sessionTimeout").checked;
+            localStorage.setItem("app_settings", JSON.stringify(appSettings));
+            alert("Ibigenderwaho bikozwe!");
+        }
+        function loadSettings() {
+            let saved = localStorage.getItem("app_settings");
+            if(saved) appSettings = JSON.parse(saved);
+            document.getElementById("churchName").value = appSettings.churchName;
+            document.getElementById("churchVerse").value = appSettings.churchVerse;
+            document.getElementById("requireStrongPassword").checked = appSettings.requireStrongPassword;
+            document.getElementById("sessionTimeout").checked = appSettings.sessionTimeout;
+        }
+
+        function renderMemberCards() {
+            let members = choraleMembers.map(m => ({ ...m, type: "chorale", roleText: `Umuririmvyi - ${m.groupe}` }));
+            let container = document.getElementById("membersCardsContainer");
+            if(container) container.innerHTML = members.map(m => `<div class="member-card"><h3>${m.nom}</h3><div class="role">${m.roleText}</div><p>📞 ${m.phone}</p><p>📅 Yitabiriye kuva: ${m.dateCreation}</p></div>`).join('');
+        }
+
+        function bindEvents() {
+            document.getElementById("addOffrandeBtn").onclick = () => { let nom=document.getElementById("offNom").value, montant=parseInt(document.getElementById("offMontant").value), date=document.getElementById("offDate").value; if(nom && montant) churchData.offrandes.push({nom,montant,date}); saveData(); refreshAllLists(); };
+            document.getElementById("addInamaBtn").onclick = () => { let title=document.getElementById("inamaTitle").value, date=document.getElementById("inamaDate").value, time=document.getElementById("inamaTime").value; if(title && date) churchData.inamas.push({title,date,time}); saveData(); refreshAllLists(); };
+            document.getElementById("addEnfantBtn").onclick = () => { let nom=document.getElementById("enfantNom").value, age=document.getElementById("enfantAge").value; if(nom) churchData.enfants.push({nom,age}); saveData(); refreshAllLists(); };
+            document.getElementById("addHommeBtn").onclick = () => { let nom=document.getElementById("hommeNom").value, phone=document.getElementById("hommePhone").value; if(nom) churchData.hommes.push({nom,phone}); saveData(); refreshAllLists(); };
+            document.getElementById("addFemmeBtn").onclick = () => { let nom=document.getElementById("femmeNom").value, phone=document.getElementById("femmePhone").value; if(nom) churchData.femmes.push({nom,phone}); saveData(); refreshAllLists(); };
+            document.getElementById("addBaptiseBtn").onclick = () => { let nom=document.getElementById("baptiseNom").value, dateBapteme=document.getElementById("baptiseDate").value; if(nom && dateBapteme) churchData.baptises.push({nom,dateBapteme}); saveData(); refreshAllLists(); };
+            document.getElementById("addInventaireBtn").onclick = () => { let nom=document.getElementById("invNom").value, quantite=parseInt(document.getElementById("invQuantite").value)||0, prix=parseInt(document.getElementById("invPrix").value)||0; if(nom && quantite) { churchData.inventaire.push({nom,quantite,prix}); saveData(); refreshAllLists(); } };
+            document.getElementById("addEntreeBtn").onclick = () => { let montant=parseInt(document.getElementById("entreeMontant").value), date=document.getElementById("entreeDate").value; if(montant) { churchData.entrees.push({montant,date}); saveData(); refreshAllLists(); } };
+            document.getElementById("addSortieBtn").onclick = () => { let montant=parseInt(document.getElementById("sortieMontant").value), date=document.getElementById("sortieDate").value; if(montant) { churchData.sorties.push({montant,date}); saveData(); refreshAllLists(); } };
+            document.getElementById("addUserBtn").onclick = addUser;
+            document.getElementById("genRapportBtn").onclick = generateProfessionalRapport;
+            document.getElementById("saveEditBtn").onclick = saveEditUser;
+            document.getElementById("cancelEditBtn").onclick = () => { document.getElementById("editUserModal").style.display = "none"; };
+            document.getElementById("submitPostBtn").onclick = submitNewPost;
+            document.getElementById("uploadMediaBtn").onclick = uploadMedia;
+            document.getElementById("saveSettingsBtn").onclick = saveSettings;
+            document.getElementById("searchVerseBtn").onclick = searchVerse;
+            document.getElementById("showBooksBtn").onclick = toggleBooksList;
+        }
+
+        function login() {
+            let username = document.getElementById("loginUsername").value.toLowerCase();
+            let password = document.getElementById("loginPassword").value;
+            let user = systemUsers.find(u => u.username === username && u.password === password);
+            if(user) {
+                currentUser = user.username; currentRole = user.role;
+                document.getElementById("loginPageFull").style.display = "none";
+                document.getElementById("mainApp").style.display = "flex";
+                buildMenu(); refreshAllLists(); bindEvents(); renderMemberCards(); refreshUsersList(); renderForumPosts(); renderMediaGallery(); updateChoraleSelect(); loadSettings();
+                document.getElementById("choraleProfilContainer").innerHTML = "<p>Hitamo umuririmvyi</p>";
+                document.getElementById("bibleBooksList").style.display = "none";
+                updateBibleStatus(); showVerseOfTheDay();
+            } else {
+                document.getElementById("loginError").innerHTML = "Izina cyangwa ijambo ryibanga si byo! Gerageza: pasteur/pasteur123";
+            }
+        }
+
+        document.getElementById("menuToggle").addEventListener("click", () => { document.getElementById("sidebar").classList.toggle("open"); });
+        window.addEventListener("click", (e) => { let sidebar = document.getElementById("sidebar"); if(window.innerWidth <= 768 && sidebar.classList.contains("open") && !sidebar.contains(e.target) && e.target !== document.getElementById("menuToggle")) { sidebar.classList.remove("open"); } });
+        document.getElementById("logoutBtn").onclick = () => { currentUser = null; currentRole = ""; document.getElementById("mainApp").style.display = "none"; document.getElementById("loginPageFull").style.display = "flex"; };
+        
+        function updateOfflineStatus() { 
+            document.getElementById("offlineStatus").innerHTML = navigator.onLine ? "🌐 Ikirungu kiriko kirakora (Online)" : "📴 Nta kirungu (Offline)";
+            if(document.getElementById("biblePage").classList.contains("active-section")) updateBibleStatus();
+        }
+        window.addEventListener('online', updateOfflineStatus);
+        window.addEventListener('offline', updateOfflineStatus);
+        
+        loadUsers(); loadData(); loadChoraleData(); loadForumData(); loadMediaData(); updateOfflineStatus();
+        document.getElementById("loginBtnMain").addEventListener("click", login);
+        document.addEventListener("click", handleDelete);
+        document.getElementById("searchMember")?.addEventListener("input", renderMemberCards);
+    </script>
+</body>
+</html>
